@@ -1,0 +1,47 @@
+[tool.poetry]
+name = "srochno-backend"
+version = "1.0.0"
+description = "FastAPI backend for Срочные Услуги Telegram WebApp"
+authors = ["ARCHITECT-9 <operator@srochno.ru>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.115.0"
+uvicorn = {extras = ["standard"], version = "^0.32.0"}
+sqlalchemy = {extras = ["asyncio"], version = "^2.0.36"}
+asyncpg = "^0.30.0"
+alembic = "^1.14.0"
+pydantic = {extras = ["email"], version = "^2.10.0"}
+pydantic-settings = "^2.6.0"
+python-multipart = "^0.0.12"
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+httpx = "^0.27.0"
+python-dateutil = "^2.9.0"
+aiocryptopay = "^0.4.3"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.0"
+pytest-asyncio = "^0.24.0"
+black = "^24.10.0"
+ruff = "^0.8.0"
+mypy = "^1.13.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "I", "N", "W"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+plugins = ["pydantic.mypy"]

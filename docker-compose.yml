@@ -1,0 +1,17 @@
+services:
+  api:
+    build: .
+    ports:
+      - "20001:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://srochno:43954f8960281039c930e7fe56b311a266f7b811add326f76d5171f3b59170b6@host.docker.internal:5432/srochno_test
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
+      DEBUG: "True"
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:10002}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    volumes:
+      - ./app:/app/app
+      - ./alembic:/app/alembic
