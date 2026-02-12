@@ -239,7 +239,3 @@ Before announcing to users:
 - [ ] Monitoring alerts working
 - [ ] Logs being collected and retained
 
----
-
-**Last updated**: 2026-02-06
-**Deployed by**: ARCHITECT-9

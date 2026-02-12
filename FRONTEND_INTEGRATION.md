@@ -830,6 +830,3 @@ const order = await api.getOrder(orderId);
 // Use order.created_at for calculations
 ```
 
----
-
-**Need help?** Contact: operator@srochno.ru

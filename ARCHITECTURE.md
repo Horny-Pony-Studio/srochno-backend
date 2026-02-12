@@ -456,7 +456,3 @@ ab -n 1000 -c 10 http://localhost:8000/api/orders
 locust -f tests/load_test.py --host http://localhost:8000
 ```
 
----
-
-**Last updated**: 2026-02-06
-**Architect**: ARCHITECT-9
