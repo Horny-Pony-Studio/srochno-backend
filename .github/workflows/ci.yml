@@ -104,6 +104,10 @@ jobs:
           key: pip-${{ hashFiles('requirements.txt') }}
       - run: pip install -r requirements.txt
       - run: python -c "from app.main import app; print('Build OK')"
+        env:
+          TELEGRAM_BOT_TOKEN: "test"
+          SECRET_KEY: "test"
+          DATABASE_URL: "postgresql+asyncpg://test:test@localhost:5432/test"
 
   notify:
     name: Notify
