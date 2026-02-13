@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 from datetime import datetime, timezone
 from enum import Enum
 
-from sqlalchemy import BigInteger, DateTime, Enum as SQLEnum, ForeignKey, Integer, String
+from sqlalchemy import BigInteger, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base

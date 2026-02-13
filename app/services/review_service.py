@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models.order import ExecutorTake, Order, OrderStatus
-from app.models.review import ClientReview, ComplaintReason, ExecutorComplaint
+from app.models.review import ClientReview, ExecutorComplaint
 from app.models.user import User
 from app.schemas.review import ClientReviewRequest, ExecutorComplaintRequest
 
