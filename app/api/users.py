@@ -5,6 +5,8 @@ from app.core.database import get_db
 from app.middleware.auth import get_current_user
 from app.models.user import User
 from app.schemas.user import (
+    NotificationSettingsResponse,
+    PreferencesResponse,
     UpdateNotificationSettingsRequest,
     UpdatePreferencesRequest,
     UserProfileResponse,
@@ -27,6 +29,28 @@ async def get_current_user_profile(
         active_orders=user.active_orders_count,
         rating=user.average_rating,
         balance=user.balance,
+    )
+
+
+@router.get("/me/notification-settings", response_model=NotificationSettingsResponse)
+async def get_notification_settings(
+    user: User = Depends(get_current_user),
+) -> NotificationSettingsResponse:
+    """Get current notification settings"""
+    return NotificationSettingsResponse(
+        enabled=user.notifications_enabled,
+        frequency=user.notification_frequency_minutes,
+    )
+
+
+@router.get("/me/preferences", response_model=PreferencesResponse)
+async def get_preferences(
+    user: User = Depends(get_current_user),
+) -> PreferencesResponse:
+    """Get current notification preferences (categories & cities)"""
+    return PreferencesResponse(
+        categories=user.subscribed_categories,
+        cities=user.subscribed_cities,
     )
 
 
