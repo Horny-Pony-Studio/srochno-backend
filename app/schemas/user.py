@@ -35,3 +35,13 @@ class UpdatePreferencesRequest(BaseModel):
 class UpdateNotificationSettingsRequest(BaseModel):
     enabled: bool | None = Field(None, description="Enable or disable notifications")
     frequency: int | None = Field(None, ge=5, le=15, description="Notification frequency in minutes")
+
+
+class NotificationSettingsResponse(BaseModel):
+    enabled: bool
+    frequency: int
+
+
+class PreferencesResponse(BaseModel):
+    categories: list[str]
+    cities: list[str]
