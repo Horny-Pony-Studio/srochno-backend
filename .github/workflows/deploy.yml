@@ -30,6 +30,10 @@ jobs:
             echo "No tests found, skipping"
           fi
       - run: python -c "from app.main import app; print('Build OK')"
+        env:
+          TELEGRAM_BOT_TOKEN: "test"
+          SECRET_KEY: "test"
+          DATABASE_URL: "postgresql+asyncpg://test:test@localhost:5432/test"
 
   build-image:
     name: Build & Push Docker Image
