@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.0.0-beta.2 (2026-02-13)
+
+### CI/CD
+- **ci.yml**: PR pipeline — lint (ruff), typecheck (mypy), tests (pytest), build check, Telegram notify
+- **deploy.yml**: Tag pipeline — quality gate → Docker build → GHCR push → Trivy scan → SSH deploy
+- **rollback.yml**: Manual workflow_dispatch to redeploy a previous image tag
+- **dependabot-notify.yml**: Telegram notification on Dependabot PRs
+- **dependabot.yml**: Weekly pip + github-actions dependency updates
+
+### Fixes
+- Fix all ruff lint errors: `from __future__ import annotations` in models, import sorting, unused imports
+- Migrate ruff config to `[tool.ruff.lint]` section (fix deprecation)
+- Add F821 to ruff ignore list (SQLAlchemy forward refs)
+
 ## v1.0.0-beta.1 (2026-02-13)
 
 First beta release — backend API for Срочные Услуги Telegram WebApp.
