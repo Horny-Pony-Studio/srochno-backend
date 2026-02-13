@@ -1,0 +1,124 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  install:
+    name: Install Dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Cache pip packages
+        uses: actions/cache/save@v5
+        id: cache
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ hashFiles('requirements.txt') }}
+      - run: pip install -r requirements.txt
+      - run: pip install ruff mypy pytest pytest-asyncio
+      - run: pip audit --desc || true
+
+  lint:
+    name: Lint
+    needs: install
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/cache/restore@v5
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ hashFiles('requirements.txt') }}
+      - run: pip install ruff
+      - run: ruff check app
+
+  typecheck:
+    name: Type Check
+    needs: install
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/cache/restore@v5
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ hashFiles('requirements.txt') }}
+      - run: pip install -r requirements.txt
+      - run: pip install mypy
+      - run: python -m mypy app --ignore-missing-imports
+
+  test:
+    name: Tests
+    needs: install
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/cache/restore@v5
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ hashFiles('requirements.txt') }}
+      - run: pip install -r requirements.txt
+      - run: pip install pytest pytest-asyncio
+      - run: python -m pytest tests/ -v
+
+  build:
+    name: Build Check
+    needs: [lint, typecheck, test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/cache/restore@v5
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ hashFiles('requirements.txt') }}
+      - run: pip install -r requirements.txt
+      - run: python -c "from app.main import app; print('Build OK')"
+
+  notify:
+    name: Notify
+    needs: [lint, typecheck, test, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    if: always()
+    steps:
+      - name: Send Telegram notification
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_CI_BOT_TOKEN }}
+          format: markdown
+          disable_web_page_preview: true
+          message: |
+            ${{ needs.build.result == 'success' && '✅' || '❌' }} *CI Backend* `${{ github.head_ref }}`
+            📋 [#${{ github.event.pull_request.number }} — ${{ github.event.pull_request.title }}](${{ github.event.pull_request.html_url }})
+
+            Lint: ${{ needs.lint.result == 'success' && '✅' || '❌' }}
+            Types: ${{ needs.typecheck.result == 'success' && '✅' || '❌' }}
+            Tests: ${{ needs.test.result == 'success' && '✅' || '❌' }}
+            Build: ${{ needs.build.result == 'success' && '✅' || '❌' }}
+
+            🔗 [Actions](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})

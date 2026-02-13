@@ -1,0 +1,24 @@
+name: Dependabot Notify
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  notify:
+    name: Notify
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Send Telegram notification
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_CI_BOT_TOKEN }}
+          format: markdown
+          disable_web_page_preview: true
+          message: |
+            🤖 *Dependabot* [${{ github.repository }}](${{ github.server_url }}/${{ github.repository }}) `${{ github.head_ref }}`
+            📋 [#${{ github.event.pull_request.number }} — ${{ github.event.pull_request.title }}](${{ github.event.pull_request.html_url }})
+            🔗 [Actions](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})

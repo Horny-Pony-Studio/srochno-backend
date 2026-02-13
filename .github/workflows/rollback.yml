@@ -1,0 +1,56 @@
+name: Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Version tag to rollback to (e.g. 1.0.0)"
+        required: true
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  rollback:
+    name: Rollback to ${{ inputs.tag }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: production
+    steps:
+      - name: Lowercase repo name
+        id: repo
+        run: echo "name=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+      - name: Deploy previous version via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker pull ${{ env.REGISTRY }}/${{ steps.repo.outputs.name }}:${{ inputs.tag }}
+            cd /opt/srochno-backend
+            TAG=${{ inputs.tag }} docker compose -f docker-compose.prod.yml up -d --force-recreate
+            docker image prune -f
+
+  notify:
+    name: Notify
+    needs: [rollback]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    environment: production
+    if: always()
+    steps:
+      - name: Send Telegram notification
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_CI_BOT_TOKEN }}
+          format: markdown
+          disable_web_page_preview: true
+          message: |
+            ${{ needs.rollback.result == 'success' && '⏪' || '❌' }} *Rollback Backend* → `${{ inputs.tag }}`
+            Result: ${{ needs.rollback.result == 'success' && '✅ Success' || '❌ Failed' }}
+
+            🔗 [Actions](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})

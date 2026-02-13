@@ -1,0 +1,131 @@
+name: Deploy
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - run: pip install ruff mypy pytest pytest-asyncio
+      - run: ruff check app
+      - run: python -m mypy app --ignore-missing-imports
+      - run: python -m pytest tests/ -v
+
+  build-image:
+    name: Build & Push Docker Image
+    needs: quality-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image-tag: ${{ steps.meta.outputs.version }}
+      image-name: ${{ steps.repo.outputs.name }}
+    steps:
+      - name: Lowercase repo name
+        id: repo
+        run: echo "name=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v6
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ steps.repo.outputs.name }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=raw,value=latest
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  scan-image:
+    name: Security Scan
+    needs: build-image
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      packages: read
+    steps:
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ needs.build-image.outputs.image-name }}:${{ needs.build-image.outputs.image-tag }}
+          format: table
+          exit-code: 1
+          severity: CRITICAL
+
+  deploy:
+    name: Deploy to VPS
+    needs: [build-image, scan-image]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: production
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker pull ${{ env.REGISTRY }}/${{ needs.build-image.outputs.image-name }}:latest
+            cd /opt/srochno-backend
+            TAG=${{ needs.build-image.outputs.image-tag }} docker compose -f docker-compose.prod.yml up -d --force-recreate
+            docker image prune -f
+
+  notify:
+    name: Notify
+    needs: [build-image, deploy]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    environment: production
+    if: always()
+    steps:
+      - name: Send Telegram notification
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_CI_BOT_TOKEN }}
+          format: markdown
+          disable_web_page_preview: true
+          message: |
+            ${{ needs.deploy.result == 'success' && '🚀' || '❌' }} *Deploy Backend* `${{ github.ref_name }}`
+            Image: `${{ needs.build-image.outputs.image-name }}:${{ needs.build-image.outputs.image-tag }}`
+
+            Build: ${{ needs.build-image.result == 'success' && '✅' || '❌' }}
+            Deploy: ${{ needs.deploy.result == 'success' && '✅' || '❌' }}
+
+            🔗 [Actions](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
