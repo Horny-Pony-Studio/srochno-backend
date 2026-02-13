@@ -10,7 +10,14 @@ from sqlalchemy import text
 from app.api import balance, cities, orders, reviews, users
 from app.core.config import settings
 from app.core.database import async_session_maker, engine
-from app.models import BalanceTransaction, ClientReview, ExecutorComplaint, Order, PaymentInvoice, User  # noqa
+from app.models import (  # noqa
+    BalanceTransaction,
+    ClientReview,
+    ExecutorComplaint,
+    Order,
+    PaymentInvoice,
+    User,
+)
 from app.utils.timer import auto_close_expired_orders
 
 logger = logging.getLogger(__name__)

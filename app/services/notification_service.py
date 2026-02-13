@@ -7,7 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.database import async_session_maker
-from app.models.order import Order
 from app.models.user import User
 
 logger = logging.getLogger(__name__)
