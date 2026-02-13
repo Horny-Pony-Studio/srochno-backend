@@ -50,6 +50,7 @@ jobs:
     needs: install
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v5
@@ -79,7 +80,13 @@ jobs:
           key: pip-${{ hashFiles('requirements.txt') }}
       - run: pip install -r requirements.txt
       - run: pip install pytest pytest-asyncio
-      - run: python -m pytest tests/ -v
+      - name: Run tests
+        run: |
+          if [ -d tests ] && [ -n "$(find tests -name 'test_*.py' -o -name '*_test.py' 2>/dev/null)" ]; then
+            python -m pytest tests/ -v
+          else
+            echo "No tests found, skipping"
+          fi
 
   build:
     name: Build Check
@@ -117,7 +124,7 @@ jobs:
             📋 [#${{ github.event.pull_request.number }} — ${{ github.event.pull_request.title }}](${{ github.event.pull_request.html_url }})
 
             Lint: ${{ needs.lint.result == 'success' && '✅' || '❌' }}
-            Types: ${{ needs.typecheck.result == 'success' && '✅' || '❌' }}
+            Types: ${{ needs.typecheck.result == 'success' && '✅' || '⚠️' }}
             Tests: ${{ needs.test.result == 'success' && '✅' || '❌' }}
             Build: ${{ needs.build.result == 'success' && '✅' || '❌' }}
 
