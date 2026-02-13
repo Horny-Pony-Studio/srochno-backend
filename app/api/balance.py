@@ -75,7 +75,7 @@ async def get_payment_status(
 
 
 @router.post("/webhook/crypto-bot")
-async def crypto_bot_webhook(request: Request, db: AsyncSession = Depends(get_db)):
+async def crypto_bot_webhook(request: Request, db: AsyncSession = Depends(get_db)) -> dict[str, bool]:
     """Process Crypto Bot webhook (invoice_paid events)."""
     body = await request.body()
     body_text = body.decode("utf-8")

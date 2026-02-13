@@ -218,13 +218,13 @@ class OrderService:
         executor = result.scalar_one()
 
         # Lock order row
-        result = await db.execute(
+        order_result = await db.execute(
             select(Order)
             .options(selectinload(Order.executor_takes))
             .where(Order.id == order_id)
             .with_for_update()
         )
-        order = result.scalar_one_or_none()
+        order: Order | None = order_result.scalar_one_or_none()
 
         if not order:
             raise HTTPException(

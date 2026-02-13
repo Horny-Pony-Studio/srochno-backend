@@ -51,7 +51,7 @@ def validate_telegram_init_data(init_data: str, bot_token: str) -> dict[str, Any
             raise ValueError("Invalid hash - data integrity check failed")
 
         # Parse user data
-        user_data = json.loads(parsed.get("user", ["{}"])[0])
+        user_data: dict[str, Any] = json.loads(parsed.get("user", ["{}"])[0])
         if not user_data:
             raise ValueError("Missing user data in initData")
 

@@ -18,8 +18,8 @@ logger = logging.getLogger(__name__)
 
 def _get_network() -> str:
     if settings.crypto_bot_network == "main":
-        return Networks.MAIN_NET
-    return Networks.TEST_NET
+        return str(Networks.MAIN_NET)
+    return str(Networks.TEST_NET)
 
 
 class CryptoPaymentService:

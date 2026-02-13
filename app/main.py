@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -35,7 +36,7 @@ async def _timer_loop() -> None:
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     """Startup and shutdown events"""
     logging.basicConfig(level=logging.INFO if not settings.debug else logging.DEBUG)
     logger.info("Срочные Услуги API starting...")
@@ -84,7 +85,7 @@ app.include_router(cities.router, prefix=settings.api_prefix)
 
 
 @app.get("/")
-async def root():
+async def root() -> dict[str, str]:
     return {
         "service": "Срочные Услуги API",
         "version": "1.0.0",
@@ -94,7 +95,7 @@ async def root():
 
 
 @app.get("/health")
-async def health_check():
+async def health_check() -> dict[str, str] | JSONResponse:
     try:
         async with async_session_maker() as db:
             await db.execute(text("SELECT 1"))

@@ -2,12 +2,18 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from enum import Enum
+from typing import TYPE_CHECKING
 
 from sqlalchemy import BigInteger, Boolean, DateTime, Integer, String
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+
+if TYPE_CHECKING:
+    from app.models.balance import BalanceTransaction
+    from app.models.order import Order
+    from app.models.review import ClientReview, ExecutorComplaint
 
 
 class UserRole(str, Enum):

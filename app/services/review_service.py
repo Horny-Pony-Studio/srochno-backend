@@ -106,8 +106,8 @@ class ReviewService:
                 detail="You did not take this order",
             )
 
-        result = await db.execute(select(Order).where(Order.id == request.order_id))
-        order = result.scalar_one_or_none()
+        order_result = await db.execute(select(Order).where(Order.id == request.order_id))
+        order: Order | None = order_result.scalar_one_or_none()
         if not order:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Order not found"
