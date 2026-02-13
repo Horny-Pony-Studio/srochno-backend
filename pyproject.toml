@@ -23,7 +23,7 @@ aiocryptopay = "^0.4.3"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.0"
-pytest-asyncio = "^0.24.0"
+pytest-asyncio = "^1.3.0"
 black = "^26.1.0"
 ruff = "^0.15.1"
 mypy = "^1.13.0"
