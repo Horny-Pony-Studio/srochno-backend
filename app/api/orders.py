@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.middleware.auth import get_current_user, get_optional_user
-from app.models.order import OrderStatus
+from app.models.order import Order, OrderStatus
 from app.models.user import User
 from app.schemas.order import (
     CreateOrderRequest,
@@ -17,6 +17,13 @@ from app.services.notification_service import notify_new_order
 from app.services.order_service import OrderService
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
+
+
+def _populate_review_fields(resp: OrderResponse, order: Order) -> None:
+    """Copy first review's rating/comment into the response schema."""
+    if order.reviews:
+        resp.rating = order.reviews[0].rating
+        resp.review_comment = order.reviews[0].comment
 
 
 @router.post("", response_model=OrderResponse, status_code=201)
@@ -40,17 +47,22 @@ async def list_orders(
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
     mine: bool = Query(False),
+    taken_by_me: bool = Query(False),
     user: User | None = Depends(get_optional_user),
     db: AsyncSession = Depends(get_db),
 ) -> OrderListResponse:
     """List orders with filters (no auth required for browsing)"""
     client_id = user.id if mine and user else None
-    orders, total = await OrderService.list_orders(db, category, city, status, limit, offset, client_id=client_id)
+    executor_id = user.id if taken_by_me and user else None
+    orders, total = await OrderService.list_orders(
+        db, category, city, status, limit, offset, client_id=client_id, executor_id=executor_id
+    )
     # Hide contacts in list view — build response without mutating ORM objects
     responses = []
     for o in orders:
         resp = OrderResponse.model_validate(o)
         resp.contact = None
+        _populate_review_fields(resp, o)
         responses.append(resp)
     return OrderListResponse(orders=responses, total=total)
 
@@ -66,6 +78,7 @@ async def get_order(
     resp = OrderDetailResponse.model_validate(order)
     if not show_contact:
         resp.contact = None
+    _populate_review_fields(resp, order)
     return resp
 
 
@@ -136,4 +149,6 @@ async def complete_order(
 ) -> OrderResponse:
     """Client marks order as completed"""
     order = await OrderService.complete_order(db, order_id, user)
-    return OrderResponse.model_validate(order)
+    resp = OrderResponse.model_validate(order)
+    _populate_review_fields(resp, order)
+    return resp

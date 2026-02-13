@@ -65,6 +65,8 @@ class OrderResponse(BaseModel):
     taken_by: list[ExecutorTakeSchema] = Field(default_factory=list, validation_alias="executor_takes")
     customer_responded_at: datetime | None = Field(None, validation_alias="customer_responded_at")
     city_locked: bool
+    rating: int | None = None
+    review_comment: str | None = None
 
     class Config:
         from_attributes = True

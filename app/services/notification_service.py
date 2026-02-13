@@ -58,7 +58,11 @@ async def _send_notifications(
         return
 
     bot_url = f"https://api.telegram.org/bot{settings.telegram_bot_token}/sendMessage"
-    text = f"🔔 Новый заказ в категории «{category}» в городе {city}!\n\nОткройте приложение, чтобы посмотреть детали."
+    if settings.telegram_bot_username:
+        deep_link = f"https://t.me/{settings.telegram_bot_username}?startapp=order_{order_id}"
+        text = f"🔔 Новый заказ в категории «{category}» в городе {city}!\n\n{deep_link}"
+    else:
+        text = f"🔔 Новый заказ в категории «{category}» в городе {city}!\n\nОткройте приложение, чтобы посмотреть детали."
 
     async with httpx.AsyncClient(timeout=10) as client:
         for executor in eligible:

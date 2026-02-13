@@ -23,6 +23,11 @@ class ExecutorComplaintRequest(BaseModel):
     comment: str | None = Field(None, max_length=500)
 
 
+class ReviewCheckResponse(BaseModel):
+    submitted: bool
+    type: str | None = None  # "review" | "complaint"
+
+
 class ReviewResponse(BaseModel):
     id: int
     author_name: str

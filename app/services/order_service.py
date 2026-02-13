@@ -145,7 +145,7 @@ class OrderService:
         """Returns (order, show_contact). Does NOT mutate the ORM object."""
         result = await db.execute(
             select(Order)
-            .options(selectinload(Order.executor_takes))
+            .options(selectinload(Order.executor_takes), selectinload(Order.reviews))
             .where(Order.id == order_id)
         )
         order = result.scalar_one_or_none()
@@ -174,13 +174,20 @@ class OrderService:
         limit: int = 50,
         offset: int = 0,
         client_id: int | None = None,
+        executor_id: int | None = None,
     ) -> tuple[list[Order], int]:
         """List orders. Does NOT mutate ORM objects — contact hiding is done in the route."""
-        # Restrict to public statuses (skip restriction when filtering by owner)
-        if not client_id and status_filter not in LISTABLE_STATUSES:
+        # Restrict to public statuses (skip restriction when filtering by owner/executor)
+        if not client_id and not executor_id and status_filter not in LISTABLE_STATUSES:
             status_filter = OrderStatus.ACTIVE
 
-        query = select(Order).options(selectinload(Order.executor_takes))
+        query = select(Order).options(
+            selectinload(Order.executor_takes),
+            selectinload(Order.reviews),
+        )
+
+        if executor_id:
+            query = query.join(ExecutorTake).where(ExecutorTake.executor_id == executor_id)
 
         if client_id:
             query = query.where(Order.client_id == client_id)
@@ -441,5 +448,5 @@ class OrderService:
                 executor.completed_orders_count += 1
 
         await db.commit()
-        await db.refresh(order, ["executor_takes"])
+        await db.refresh(order, ["executor_takes", "reviews"])
         return order

@@ -9,6 +9,7 @@ class Settings(BaseSettings):
 
     # Telegram
     telegram_bot_token: str
+    telegram_bot_username: str = ""
 
     # Security
     secret_key: str

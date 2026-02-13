@@ -157,18 +157,55 @@ class ReviewService:
 
     @staticmethod
     async def list_reviews(
-        db: AsyncSession, rating_filter: int | None = None, limit: int = 50
+        db: AsyncSession,
+        rating_filter: int | None = None,
+        limit: int = 50,
+        client_id: int | None = None,
+        executor_id: int | None = None,
     ) -> list[ClientReview]:
-        """List all reviews with optional rating filter"""
+        """List reviews with optional rating/author/subject filter"""
         query = (
             select(ClientReview)
-            .options(selectinload(ClientReview.order), selectinload(ClientReview.executor))
+            .options(
+                selectinload(ClientReview.order),
+                selectinload(ClientReview.executor),
+                selectinload(ClientReview.client),
+            )
             .order_by(ClientReview.created_at.desc())
         )
 
         if rating_filter:
             query = query.where(ClientReview.rating == rating_filter)
+        if client_id:
+            query = query.where(ClientReview.client_id == client_id)
+        if executor_id:
+            query = query.where(ClientReview.executor_id == executor_id)
 
         query = query.limit(limit)
         result = await db.execute(query)
         return list(result.scalars().all())
+
+    @staticmethod
+    async def check_review_exists(
+        db: AsyncSession, user_id: int, order_id: str
+    ) -> tuple[bool, str | None]:
+        """Check if user already submitted a review or complaint for this order."""
+        result = await db.execute(
+            select(ClientReview).where(
+                ClientReview.order_id == order_id,
+                ClientReview.client_id == user_id,
+            )
+        )
+        if result.scalar_one_or_none():
+            return True, "review"
+
+        result = await db.execute(
+            select(ExecutorComplaint).where(
+                ExecutorComplaint.order_id == order_id,
+                ExecutorComplaint.executor_id == user_id,
+            )
+        )
+        if result.scalar_one_or_none():
+            return True, "complaint"
+
+        return False, None
