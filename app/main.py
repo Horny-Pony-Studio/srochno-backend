@@ -94,7 +94,7 @@ async def root() -> dict[str, str]:
     }
 
 
-@app.get("/health")
+@app.get("/health", response_model=None)
 async def health_check() -> dict[str, str] | JSONResponse:
     try:
         async with async_session_maker() as db:
