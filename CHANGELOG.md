@@ -1,5 +1,25 @@
 # Changelog
 
+## v1.0.0-beta.3 (2026-02-14)
+
+### Features
+- **Executor orders**: `GET /api/orders/my-executor` — list orders taken by the current executor
+- **Review filtering**: filter reviews by rating, date range
+- **Duplicate check**: prevent creating duplicate orders with the same parameters
+- **Deep-link notifications**: Telegram deep-link support in order notifications
+
+### Fixes
+- Resolve all 36 mypy strict-mode errors across 35 source files
+- Add `response_model=None` to `/health` endpoint to fix JSONResponse validation
+- Align `payment_invoices.crypto_bot_invoice_id` DB constraint with model (unique constraint → unique index)
+
+### Dependencies
+- Update ruff `^0.8.0` → `^0.15.1`
+- Update black `^24.10.0` → `^26.1.0`
+- Update pytest-asyncio `^0.24.0` → `^1.3.0`
+- Bump actions/setup-python from 5 to 6
+- Bump minor-and-patch dependency group (11 updates)
+
 ## v1.0.0-beta.2 (2026-02-13)
 
 ### CI/CD
