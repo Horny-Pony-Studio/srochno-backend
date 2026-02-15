@@ -24,8 +24,8 @@ jobs:
       - name: Deploy previous version via SSH
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
+          host: ${{ vars.SSH_HOST }}
+          username: ${{ vars.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
