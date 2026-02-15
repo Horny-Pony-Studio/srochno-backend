@@ -120,8 +120,6 @@ jobs:
           envs: IMAGE,TAG,TELEGRAM_BOT_TOKEN,CRYPTO_BOT_API_TOKEN,CRYPTO_BOT_NETWORK,CORS_ORIGINS
           script: |
             set -e
-            sudo mkdir -p /opt/srochno-backend
-            sudo chown $(whoami):$(whoami) /opt/srochno-backend
             cd /opt/srochno-backend
 
             # Preserve server-local vars (DATABASE_URL, SECRET_KEY)
