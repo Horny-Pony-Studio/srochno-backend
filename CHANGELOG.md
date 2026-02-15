@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.0-beta.4 (2026-02-15)
+
+### Fixes
+- **ci**: Revert `SSH_HOST` and `SSH_USER` from environment variables back to secrets — fixes deploy failure (`missing server host`)
+
 ## v1.0.0-beta.3 (2026-02-14)
 
 ### Features
