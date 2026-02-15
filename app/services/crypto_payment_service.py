@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 def _get_network() -> str:
-    if settings.crypto_bot_network == "main":
+    if settings.crypto_bot_network in ("main", "mainnet"):
         return str(Networks.MAIN_NET)
     return str(Networks.TEST_NET)
 
