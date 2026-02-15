@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "srochno-backend"
-version = "1.0.0-beta.3"
+version = "1.0.0-beta.4"
 description = "FastAPI backend for Срочные Услуги Telegram WebApp"
 authors = ["ARCHITECT-9 <operator@srochno.ru>"]
 readme = "README.md"
