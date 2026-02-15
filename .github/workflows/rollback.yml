@@ -45,7 +45,7 @@ jobs:
       - name: Send Telegram notification
         uses: appleboy/telegram-action@master
         with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          to: ${{ vars.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_CI_BOT_TOKEN }}
           format: markdown
           disable_web_page_preview: true
