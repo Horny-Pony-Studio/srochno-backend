@@ -59,8 +59,10 @@ async def list_reviews(
     db: AsyncSession = Depends(get_db),
 ) -> list[ReviewResponse]:
     """List reviews with optional rating/author/subject filter"""
-    client_id = user.id if mine and user else None
-    executor_id = user.id if about_me and user else None
+    # mine=true  → reviews about me (I am the executor/subject)
+    # about_me=true → reviews written by me (I am the client/author)
+    executor_id = user.id if mine and user else None
+    client_id = user.id if about_me and user else None
     reviews = await ReviewService.list_reviews(
         db, rating, limit, client_id=client_id, executor_id=executor_id
     )
@@ -68,14 +70,19 @@ async def list_reviews(
     # Transform to response format (data already eager-loaded)
     response = []
     for review in reviews:
+        order = review.order
         response.append(
             ReviewResponse(
                 id=review.id,
                 author_name=review.executor.first_name if review.executor else "Unknown",
                 rating=review.rating,
                 comment=review.comment,
-                category=review.order.category if review.order else "Unknown",
+                category=order.category if order else "Unknown",
                 created_at=review.created_at,
+                order_id=review.order_id,
+                description=order.description if order else "",
+                contact=order.contact if order else None,
+                city=order.city if order else "",
             )
         )
 

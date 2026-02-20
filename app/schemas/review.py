@@ -35,6 +35,10 @@ class ReviewResponse(BaseModel):
     comment: str | None
     category: str
     created_at: datetime
+    order_id: str
+    description: str
+    contact: str | None
+    city: str
 
     class Config:
         from_attributes = True
