@@ -10,5 +10,5 @@ python-multipart==0.0.12
 python-jose[cryptography]==3.5.0
 passlib[bcrypt]==1.7.4
 httpx==0.27.0
-python-dateutil==2.9.0
+python-dateutil==2.9.0.post0
 aiocryptopay==0.4.8
