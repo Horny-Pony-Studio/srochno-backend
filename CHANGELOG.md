@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.0.0-beta.7 (2026-02-22)
+
+### Fixes
+- **reviews**: Add `order_id`, `order_title`, `order_category` fields to `ReviewResponse` schema
+- **reviews**: Fix `/mine` and `/about-me` endpoint semantics to correctly filter by reviewer vs. target user
+- Accept `mainnet` as valid `CRYPTO_BOT_NETWORK` value
+
+### CI/CD
+- Remove `sudo` from deploy script
+- Use `sudo` for `mkdir /opt/srochno-backend`
+- Generate `.env` and `docker-compose.prod.yml` on deploy
+- Use `vars.TELEGRAM_CHAT_ID` instead of secrets
+- Use `vars` for `SSH_HOST` and `SSH_USER`
+
 ## v1.0.0-beta.4 (2026-02-15)
 
 ### Fixes
